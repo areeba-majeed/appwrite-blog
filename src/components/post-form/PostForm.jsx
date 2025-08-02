@@ -1,10 +1,10 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Button,  RTE, Select } from "..";
-import Input from "../Input";
+import { Button, RTE, Select, Input } from "..";  // 👈 Clean unified import
 import appwriteService from "../../appwrite/config";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+
 
 export default function PostForm({ post }) {
     const { register, handleSubmit, watch, setValue, control, getValues } = useForm({
@@ -21,7 +21,8 @@ export default function PostForm({ post }) {
 
     const submit = async (data) => {
         if (post) {
-            const file = data.image[0] ? await appwriteService.uploadFile(data.image[0]) : null;
+            const file = data.image?.[0] ? await appwriteService.uploadFile(data.image[0]) : null;
+
 
             if (file) {
                 appwriteService.deleteFile(post.featuredImage);
@@ -63,9 +64,10 @@ export default function PostForm({ post }) {
 
     React.useEffect(() => {
         const subscription = watch((value, { name }) => {
-            if (name === "title") {
-                setValue("slug", slugTransform(value.title), { shouldValidate: true });
-            }
+            if (name === "title" && value.title) {
+    setValue("slug", slugTransform(value.title), { shouldValidate: true });
+}
+
         });
 
         return () => subscription.unsubscribe();
@@ -99,15 +101,16 @@ export default function PostForm({ post }) {
                     accept="image/png, image/jpg, image/jpeg, image/gif"
                     {...register("image", { required: !post })}
                 />
-                {post && (
-                    <div className="w-full mb-4">
-                        <img
-                            src={appwriteService.getFilePreview(post.featuredImage)}
-                            alt={post.title}
-                            className="rounded-lg"
-                        />
-                    </div>
-                )}
+               {post?.featuredImage && (
+    <div className="w-full mb-4">
+        <img
+            src={appwriteService.getFilePreview(post.featuredImage)}
+            alt={post.title}
+            className="rounded-lg"
+        />
+    </div>
+)}
+
                 <Select
                     options={["active", "inactive"]}
                     label="Status"
